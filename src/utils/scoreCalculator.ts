@@ -14,6 +14,11 @@ export const calculateScore = (prediction: number, actual: number): { score: num
   }
 };
 
+// Helper function to calculate score for missed prediction with minimum constraint
+export const calculateMissedScore = (prediction: number): number => {
+  return -(10 * prediction);
+};
+
 export const checkForWinner = (players: { totalScore: number }[], targetScore: number): number | null => {
   for (let i = 0; i < players.length; i++) {
     if (players[i].totalScore >= targetScore) {
