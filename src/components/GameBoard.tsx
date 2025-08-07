@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Round, RoundResult } from '../types';
-import { calculateScore, checkForWinner } from '../utils/scoreCalculator';
+import { calculateScore, calculateMissedScore, checkForWinner } from '../utils/scoreCalculator';
 import { ResultModal } from './ResultModal';
 import './GameBoard.css';
 import logo from '../LOGO/estimation_logo.jpg';
@@ -73,8 +73,27 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       return;
     }
 
-    const actual = result === 'exact' ? prediction : Math.max(2, prediction - 1);
-    const { score } = calculateScore(prediction, actual);
+    let actual: number;
+    if (result === 'exact') {
+      actual = prediction;
+    } else if (result === 'missed') {
+      // For missed prediction, actual should be less than prediction
+      // Since we have minimum 2, if prediction is 2, we'll use 1 as actual
+      // but handle the score calculation manually to ensure correct result
+      actual = prediction > 2 ? prediction - 1 : 1;
+    } else {
+      // This shouldn't happen for 'over' case as it's handled above
+      actual = prediction;
+    }
+    
+    // For missed prediction with minimum constraint, calculate score manually
+    let score: number;
+    if (result === 'missed') {
+      score = calculateMissedScore(prediction); // Always negative for missed prediction
+    } else {
+      const scoreResult = calculateScore(prediction, actual);
+      score = scoreResult.score;
+    }
 
     const newRoundResult: RoundResult = {
       playerId,
