@@ -2,6 +2,7 @@ export interface Player {
   id: string;
   name: string;
   totalScore: number;
+  baseScoreOffset: number;
 }
 
 export interface RoundResult {
