@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PlayerEntry } from './components/PlayerEntry';
 import { GameBoard } from './components/GameBoard';
 import { SoundControl } from './components/SoundControl';
+import { WinnerCelebration } from './components/WinnerCelebration';
 import { GameState, Player, Round } from './types';
 import { checkForWinner } from './utils/scoreCalculator';
 import './App.css';
@@ -21,7 +22,8 @@ function App() {
       rounds: [],
       targetScore: 250,
       gameStarted: false,
-      winner: null
+      winner: null,
+      showCelebration: false
     };
   });
 
@@ -42,7 +44,8 @@ function App() {
       rounds: [],
       targetScore,
       gameStarted: true,
-      winner: null
+      winner: null,
+      showCelebration: false
     });
   };
 
@@ -63,12 +66,14 @@ function App() {
       // Check for winner
       const winnerIndex = checkForWinner(updatedPlayers, prev.targetScore);
       const winner = winnerIndex !== null ? updatedPlayers[winnerIndex] : null;
+      const showCelebration = winner !== null && !prev.showCelebration;
 
       return {
         ...prev,
         players: updatedPlayers,
         rounds: newRounds,
-        winner
+        winner,
+        showCelebration
       };
     });
   };
@@ -97,7 +102,8 @@ function App() {
         ...prev,
         players: updatedPlayers,
         rounds: newRounds,
-        winner
+        winner,
+        showCelebration: false
       };
     });
   };
@@ -108,8 +114,16 @@ function App() {
       rounds: [],
       targetScore: 250,
       gameStarted: false,
-      winner: null
+      winner: null,
+      showCelebration: false
     });
+  };
+
+  const handleCloseCelebration = () => {
+    setGameState(prev => ({
+      ...prev,
+      showCelebration: false
+    }));
   };
 
   return (
@@ -125,6 +139,14 @@ function App() {
           onRoundComplete={handleRoundComplete}
           onUndoLastRound={handleUndoLastRound}
           onRestartGame={handleRestartGame}
+        />
+      )}
+      
+      {gameState.winner && gameState.showCelebration && (
+        <WinnerCelebration
+          winner={gameState.winner}
+          isOpen={gameState.showCelebration}
+          onClose={handleCloseCelebration}
         />
       )}
     </div>
