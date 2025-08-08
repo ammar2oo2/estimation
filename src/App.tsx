@@ -36,7 +36,8 @@ function App() {
     const players: Player[] = playerNames.map((name, index) => ({
       id: `player-${index}`,
       name,
-      totalScore: 0
+      totalScore: 0,
+      baseScoreOffset: 0
     }));
 
     setGameState({
@@ -55,11 +56,11 @@ function App() {
       
       // Calculate updated player scores
       const updatedPlayers = prev.players.map(player => {
-        const totalScore = newRounds.reduce((total, r) => {
+        const roundSum = newRounds.reduce((total, r) => {
           const result = r.results.find(res => res.playerId === player.id);
           return total + (result?.score || 0);
         }, 0);
-        
+        const totalScore = roundSum + (player.baseScoreOffset || 0);
         return { ...player, totalScore };
       });
 
@@ -86,11 +87,11 @@ function App() {
       
       // Recalculate player scores
       const updatedPlayers = prev.players.map(player => {
-        const totalScore = newRounds.reduce((total, r) => {
+        const roundSum = newRounds.reduce((total, r) => {
           const result = r.results.find(res => res.playerId === player.id);
           return total + (result?.score || 0);
         }, 0);
-        
+        const totalScore = roundSum + (player.baseScoreOffset || 0);
         return { ...player, totalScore };
       });
 
@@ -119,6 +120,35 @@ function App() {
     });
   };
 
+  const handleEditScores = (updatedTotals: Record<string, number>) => {
+    setGameState(prev => {
+      // Compute per-player new offset so that displayed total equals requested total
+      const updatedPlayers = prev.players.map(player => {
+        const roundSum = prev.rounds.reduce((total, r) => {
+          const res = r.results.find(rr => rr.playerId === player.id);
+          return total + (res?.score || 0);
+        }, 0);
+        const requestedTotal = updatedTotals[player.id] ?? player.totalScore;
+        const newOffset = requestedTotal - roundSum;
+        return {
+          ...player,
+          baseScoreOffset: newOffset,
+          totalScore: requestedTotal
+        };
+      });
+
+      const winnerIndex = checkForWinner(updatedPlayers, prev.targetScore);
+      const winner = winnerIndex !== null ? updatedPlayers[winnerIndex] : null;
+
+      return {
+        ...prev,
+        players: updatedPlayers,
+        winner,
+        showCelebration: false
+      };
+    });
+  };
+
   const handleCloseCelebration = () => {
     setGameState(prev => ({
       ...prev,
@@ -139,6 +169,7 @@ function App() {
           onRoundComplete={handleRoundComplete}
           onUndoLastRound={handleUndoLastRound}
           onRestartGame={handleRestartGame}
+          onEditScores={handleEditScores}
         />
       )}
       
