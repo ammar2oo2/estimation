@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Player, Round, RoundResult } from '../types';
 import { calculateScore, calculateMissedScore, checkForWinner } from '../utils/scoreCalculator';
 import { ResultModal } from './ResultModal';
@@ -43,6 +43,62 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   // Generate hands options (2-13)
   const handsOptions = Array.from({ length: 12 }, (_, i) => i + 2);
 
+
+  const getPlayerTotalScore = (playerId: string) => {
+    return rounds.reduce((total, round) => {
+      const result = round.results.find(r => r.playerId === playerId);
+      return total + (result?.score || 0);
+    }, 0);
+  };
+
+  // Leaderboard data derived from current totals
+  const leaderboardData = useMemo(() => {
+    return players
+      .map((player) => ({
+        id: player.id,
+        name: player.name,
+        total: getPlayerTotalScore(player.id)
+      }))
+      .sort((a, b) => b.total - a.total);
+  }, [players, rounds]);
+
+  // Track previous ranks to animate movement and leader changes
+  const previousRanksRef = useRef<Map<string, number>>(new Map());
+  const previousLeaderIdRef = useRef<string | null>(null);
+  const [movedUpIds, setMovedUpIds] = useState<Set<string>>(new Set());
+  const [leaderPulseId, setLeaderPulseId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const currentRanks = new Map<string, number>();
+    leaderboardData.forEach((p, index) => currentRanks.set(p.id, index));
+
+    // Detect moved up rows
+    const movedUp = new Set<string>();
+    currentRanks.forEach((currentIndex, id) => {
+      const prevIndex = previousRanksRef.current.get(id);
+      if (prevIndex !== undefined && currentIndex < prevIndex) {
+        movedUp.add(id);
+      }
+    });
+    // Update previous ranks reference for next comparison
+    previousRanksRef.current = currentRanks;
+    if (movedUp.size > 0) {
+      setMovedUpIds(movedUp);
+      const timer = setTimeout(() => setMovedUpIds(new Set()), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [leaderboardData]);
+
+  useEffect(() => {
+    const currentLeaderId = leaderboardData[0]?.id || null;
+    if (currentLeaderId && currentLeaderId !== previousLeaderIdRef.current) {
+      setLeaderPulseId(currentLeaderId);
+      const timer = setTimeout(() => setLeaderPulseId(null), 1000);
+      previousLeaderIdRef.current = currentLeaderId;
+      return () => clearTimeout(timer);
+    }
+    previousLeaderIdRef.current = currentLeaderId;
+  }, [leaderboardData]);
 
 
   const handlePredictionChange = (playerId: string, prediction: number) => {
@@ -168,12 +224,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     onRestartGame();
   };
 
-  const getPlayerTotalScore = (playerId: string) => {
-    return rounds.reduce((total, round) => {
-      const result = round.results.find(r => r.playerId === playerId);
-      return total + (result?.score || 0);
-    }, 0);
-  };
+  
 
   return (
     <div className="game-board">
@@ -182,6 +233,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           <img src={logo} alt="Madani Estimation Logo" className="app-logo" />
         </div>
         <h1 className="app-title">Madani Estimation</h1>
+        <div className="leaderboard">
+          {leaderboardData.map((p, index) => (
+            <div
+              key={p.id}
+              className={`leaderboard-row ${index === 0 ? 'leader' : ''} ${leaderPulseId === p.id ? 'leader-pulse' : ''} ${movedUpIds.has(p.id) ? 'moved-up' : ''}`}
+            >
+              <div className="leaderboard-rank">{index + 1}{index === 0 ? ' 👑' : ''}</div>
+              <div className="leaderboard-name">{p.name}</div>
+              <div className="leaderboard-score">{p.total}</div>
+            </div>
+          ))}
+        </div>
         <div className="game-info">
           <span className="info-badge">Target: {targetScore}</span>
           <span className="info-badge">Round {currentRoundNumber}</span>
@@ -202,11 +265,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 <div className="player-info">
                   <span className="player-name">{player.name}</span>
                   {isWinner && <span className="winner-badge">👑</span>}
-                </div>
-                <div className="total-score-container">
-                  <span className={`total-score ${totalScore >= targetScore ? 'target-reached' : ''}`}>
-                    {totalScore}
-                  </span>
+                  <div className="total-score-container">
+                    <span className={`total-score ${totalScore >= targetScore ? 'target-reached' : ''}`}>
+                      {totalScore}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -381,4 +444,4 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       />
     </div>
   );
-}; 
+};
