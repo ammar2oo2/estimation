@@ -632,6 +632,7 @@
   gap: 8px;
   width: 100%;
   margin: 10px 0 8px 0;
+  position: relative;
 }
 
 .leaderboard-row {
@@ -702,4 +703,107 @@
   .leaderboard-name { font-size: 14px; }
   .leaderboard-score { font-size: 16px; }
   .leaderboard-rank { font-size: 16px; }
+}
+
+/* Edit Scores button */
+.edit-scores-btn {
+  position: absolute;
+  top: -6px;
+  right: 0;
+  transform: translateY(-100%);
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+.edit-scores-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  width: min(520px, 92vw);
+  background: rgba(26, 10, 10, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.modal-title {
+  margin: 0;
+  color: rgba(255,255,255,0.95);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.modal-body {
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 10px;
+  align-items: center;
+}
+
+.edit-name {
+  color: rgba(255,255,255,0.9);
+  font-weight: 700;
+}
+
+.edit-input {
+  width: 100%;
+  text-align: right;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cancel-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, rgba(52, 199, 89, 0.9) 0%, rgba(48, 209, 88, 0.9) 100%);
+  color: #fff;
 }
