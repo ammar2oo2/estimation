@@ -18,6 +18,7 @@ interface GameBoardProps {
   onRoundComplete: (round: Round) => void;
   onUndoLastRound: () => void;
   onRestartGame: () => void;
+  onEditScores: (updatedTotals: Record<string, number>) => void;
 }
 
 export const GameBoard: React.FC<GameBoardProps> = ({
@@ -26,7 +27,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   targetScore,
   onRoundComplete,
   onUndoLastRound,
-  onRestartGame
+  onRestartGame,
+  onEditScores
 }) => {
   const [currentRound, setCurrentRound] = useState<Partial<RoundResult>[]>(
     players.map(player => ({ playerId: player.id, prediction: undefined }))
@@ -43,6 +45,31 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   // Generate hands options (2-13)
   const handsOptions = Array.from({ length: 12 }, (_, i) => i + 2);
 
+
+  // Edit scores modal state
+  const [isEditScoresOpen, setIsEditScoresOpen] = useState(false);
+  const [editedTotals, setEditedTotals] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (isEditScoresOpen) {
+      const prefills: Record<string, string> = {};
+      players.forEach(p => {
+        prefills[p.id] = String(p.totalScore);
+      });
+      setEditedTotals(prefills);
+    }
+  }, [isEditScoresOpen, players]);
+
+  const handleSaveEditedScores = () => {
+    const parsed: Record<string, number> = {};
+    players.forEach(p => {
+      const raw = editedTotals[p.id];
+      const num = raw === undefined || raw === '' ? p.totalScore : parseInt(raw, 10);
+      parsed[p.id] = isNaN(num) ? p.totalScore : num;
+    });
+    onEditScores(parsed);
+    setIsEditScoresOpen(false);
+  };
 
   const getPlayerTotalScore = (playerId: string) => {
     return rounds.reduce((total, round) => {
@@ -234,6 +261,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
         <h1 className="app-title">Madani Estimation</h1>
         <div className="leaderboard">
+          <button className="edit-scores-btn" onClick={() => setIsEditScoresOpen(true)} title="Edit current totals">
+            ✏️ Edit Scores
+          </button>
           {leaderboardData.map((p, index) => (
             <div
               key={p.id}
@@ -442,6 +472,33 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         onResult={handleModalResult}
         onClose={() => setModalState({ isOpen: false, playerId: '', prediction: 0 })}
       />
+
+      {isEditScoresOpen && (
+        <div className="modal-overlay" onClick={() => setIsEditScoresOpen(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Set Current Scores</h3>
+            </div>
+            <div className="modal-body">
+              {players.map(p => (
+                <div key={p.id} className="edit-row">
+                  <span className="edit-name">{p.name}</span>
+                  <input
+                    className="glass-input edit-input"
+                    type="number"
+                    value={editedTotals[p.id] ?? ''}
+                    onChange={(e) => setEditedTotals(prev => ({ ...prev, [p.id]: e.target.value }))}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="modal-footer">
+              <button className="glass-button cancel-btn" onClick={() => setIsEditScoresOpen(false)}>Cancel</button>
+              <button className="glass-button save-btn" onClick={handleSaveEditedScores}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}; 
