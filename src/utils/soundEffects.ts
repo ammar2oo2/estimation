@@ -112,6 +112,31 @@ class SoundManager {
     this.playTone(600, 0.15, 'sine', 0.1);
   }
 
+  public playChampagnePop() {
+    // Create a champagne pop sound using multiple tones
+    this.playTone(800, 0.1, 'sine', 0.2);
+    setTimeout(() => this.playTone(1000, 0.1, 'sine', 0.15), 50);
+    setTimeout(() => this.playTone(1200, 0.1, 'sine', 0.1), 100);
+    setTimeout(() => this.playTone(600, 0.2, 'sine', 0.1), 150);
+  }
+
+  public playApplause() {
+    // Create applause sound using multiple tones
+    const applauseTones = [523, 587, 659, 698, 784, 880, 987, 1047];
+    applauseTones.forEach((tone, index) => {
+      setTimeout(() => {
+        this.playTone(tone, 0.3, 'sine', 0.05);
+      }, index * 100);
+    });
+    
+    // Continue applause in background
+    setTimeout(() => {
+      if (this.isEnabled) {
+        this.playApplause();
+      }
+    }, 2000);
+  }
+
   public enable() {
     this.isEnabled = true;
   }
@@ -141,6 +166,8 @@ export const playRoundComplete = () => soundManager.playRoundComplete();
 export const playWinner = () => soundManager.playWinner();
 export const playError = () => soundManager.playError();
 export const playPredictionResult = () => soundManager.playPredictionResult();
+export const playChampagnePop = () => soundManager.playChampagnePop();
+export const playApplause = () => soundManager.playApplause();
 
 // Export the sound manager for advanced usage
 export default soundManager; 
