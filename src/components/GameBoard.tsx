@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Player, Round, RoundResult } from '../types';
 import { calculateScore, calculateMissedScore, checkForWinner } from '../utils/scoreCalculator';
 import { ResultModal } from './ResultModal';
@@ -7,10 +7,8 @@ import logo from '../LOGO/estimation_logo.jpg';
 import { 
   playButtonClick, 
   playRoundComplete, 
-  playWinner, 
   playPredictionResult,
-  playError,
-  playSuccess
+  playError
 } from '../utils/soundEffects';
 
 interface GameBoardProps {
@@ -45,12 +43,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   // Generate hands options (2-13)
   const handsOptions = Array.from({ length: 12 }, (_, i) => i + 2);
 
-  // Play winner sound when someone wins
-  useEffect(() => {
-    if (winnerIndex !== null) {
-      playWinner();
-    }
-  }, [winnerIndex]);
+
 
   const handlePredictionChange = (playerId: string, prediction: number) => {
     setCurrentRound(prev => 
@@ -195,11 +188,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       </div>
 
-      {winnerIndex !== null && (
-        <div className="winner-banner">
-          🏆 <strong>{players[winnerIndex].name}</strong> wins with {players[winnerIndex].totalScore} points!
-        </div>
-      )}
+
 
       <div className="players-grid">
         {players.map((player, index) => {
