@@ -23,6 +23,7 @@ export interface GameState {
   targetScore: number;
   gameStarted: boolean;
   winner: Player | null;
+  showCelebration: boolean;
 }
 
 export type TargetScoreOption = 250 | 300 | 350 | 500 | 750 | 1000;
